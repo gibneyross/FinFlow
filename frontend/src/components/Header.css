@@ -1,0 +1,26 @@
+.header {
+width: 100%;
+box-sizing: border-box;
+  background-color: #add8e6; /*Light blue*/
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  flex-wrap: wrap;
+}
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.nav a {
+  margin: 0 0.75rem;
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+}
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}

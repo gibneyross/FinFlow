@@ -1,0 +1,29 @@
+.footer {
+  background-color: #add8e6;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.footer p {
+  margin: 0;
+}
+.sociallinks a {
+  margin-left: 1rem;
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+}
+@media (max-width: 600px) {
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sociallinks a {
+    margin: 0.25rem 0;
+  }
+}
