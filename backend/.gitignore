@@ -1,20 +1,15 @@
-# Dependencies and environment
 node_modules/
 .env
-
 # Hardhat build artifacts
 artifacts/
 cache/
 coverage/
 coverage.json
-
 # Typechain
 typechain/
 typechain-types/
-
 # Ignition local deployments
 ignition/deployments/chain-31337/
-
-# OS & editor files
+# OS
 .DS_Store
 .vscode/
