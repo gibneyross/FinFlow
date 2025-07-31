@@ -16,8 +16,8 @@ import nftContractArtifact from './contracts/ReputationNFT.json';
 // Import Style
 import './App.css';
 
-const LOAN_CONTRACT_ADDRESS = "0x908c57D71dC14C489E61A27AE290d5b79E6D17d4";
-const NFT_CONTRACT_ADDRESS = "0x4c68aF0060269620a9151b8f8CADfE9Ca7200F92";
+const LOAN_CONTRACT_ADDRESS = import.meta.env.VITE_LOAN_CONTRACT;
+const NFT_CONTRACT_ADDRESS = import.meta.env.VITE_REPUTATION_CONTRACT;
 
 function App() {
 	// React state hooks to store blockchain connection data
