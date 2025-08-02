@@ -64,16 +64,6 @@ function FAQAccordion() {
 }
 function Home() {
 	return (
-		<div
-		className="home"
-		style={{
-		position:'relative',
-		minHeight:'100vh',
-		paddingBottom: '100px',//if you have a footer
-		overflow: 'hidden',
-		}}
-		>
-		{/* Existing content */}
 		<div className="centerpage">
 			<h2>Welcome to FinFlow</h2>
 			<p>
@@ -82,21 +72,17 @@ function Home() {
   				underbanked and underserved with access to capital—cutting out the middlemen.
    			</p>
 			<FAQAccordion />
+			<img
+				src={backgroundImage}
+				alt="FinFlow background"
+				style={{
+					display: 'block',
+					width: '400px',
+					maxWidth: '80%',
+					pointerEvents: 'none'
+				}}
+			/>
 		</div>
-		<img
-			src={backgroundImage}
-			alt="FinFlow background visual"
-			style={{
-			position: "absolute",
-			bottom: 0,
-			right: 0,
-			width: '400px',// Adjust as needed
-			pointerEvents: 'none',//So it doesn’t interfere with clicks
-			zIndex: 0,
-			opacity: 1,
-		}}
-		/>
-		</div>
-	);
+		);
 }
 export default Home;

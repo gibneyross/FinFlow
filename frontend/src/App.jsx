@@ -25,59 +25,58 @@ function App() {
 	const [signer, setSigner] = useState(null);// User signer
 	const [loanContract, setLoanContract] =useState(null); // Loan smart contract instance
 	const [nftContract, setNftContract]= useState(null);// Reputation NFT contract instance
-	const [account, setAccount] = useState('');// User wallet address
+	const [account, setAccount] =useState('');// User wallet address
+	const [loading, setLoading]=useState(true);
+
 	// Auto-connect wallet and contracts
 	useEffect(() => {
-	const connectWallet = async () => {
-		// Check for MetaMask
+	const init = async () => {
 		if (!window.ethereum) {
-			alert('MetaMask not detected');
 			console.warn('MetaMask not detected in browser.');
+			setLoading(false); // Continue loading even without wallet
 			return;
-		}
+   		}
+
 		try {
-			console.log('Connecting to wallet...');
-			// Prompt MetaMask to connect to wallet
-			await window.ethereum.request({ method: 'eth_requestAccounts' });
-			// Create ethers provider and signer
+			console.log('Attempting silent wallet detection...');
+			// Attempt to get existing connected accounts
+			const accounts =await window.ethereum.request({ method: 'eth_accounts'});
 			const provider = new ethers.BrowserProvider(window.ethereum);
-			const signer = await provider.getSigner();
-			const address = await signer.getAddress();
-			console.log('Wallet connected:', address);
-			// Create instances of smart contracts using signer
-			const loan = new ethers.Contract(
-			LOAN_CONTRACT_ADDRESS,
-			loanContractArtifact.abi,
-			signer
-		);
-		const nft = new ethers.Contract(
-		NFT_CONTRACT_ADDRESS,
-		nftContractArtifact.abi,
-		signer
-		);
-		console.log('LoanContract connected at:', LOAN_CONTRACT_ADDRESS);
-		console.log('NFTContract connected at:', NFT_CONTRACT_ADDRESS);
-		// Store connected objects in React state
-		setProvider(provider);
-		setSigner(signer);
-		setAccount(address);
-		setLoanContract(loan);
-		setNftContract(nft);
-		} catch (err) {
-			console.error('Error connecting to wallet or contracts:', err);
-		}
-	};
-	connectWallet();
+			const signer= await provider.getSigner();
+			const loan =new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, signer);
+			const nft = new ethers.Contract(NFT_CONTRACT_ADDRESS, nftContractArtifact.abi, signer);
+			setProvider(provider);
+			setSigner(signer);
+			setLoanContract(loan);
+			setNftContract(nft);
+
+			if (accounts.length > 0) {
+				console.log('Wallet detected:', accounts[0]);
+				setAccount(accounts[0]);
+			} else {
+				console.log('No wallet connected yet');
+			}
+			} catch (err) {
+				console.error('Error during contract or wallet setup:', err);
+			} finally {
+				setLoading(false); // NEW: Always stop loading, even if failure
+
+			}
+		};
+
+		init();
 	}, []);
-	// Show a loading screen while contracts and wallet are initializing
-	if (!loanContract || !nftContract || !account) {
+
+	// Show a loading screen whilee initializing
+	if (loading || !loanContract || !nftContract) {
 		return (
 		<div className="loading-screen">
 			<h2>FinFlow loading...</h2>
 		</div>
 		);
 	}
-	// Render the main app with routing
+
+	// Render the app
 	return (
 		<Router>
 		<div className="appcontainer">
