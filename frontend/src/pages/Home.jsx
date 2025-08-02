@@ -9,7 +9,7 @@ function FAQAccordion() {
 	const faqs = [
 	{
 		question: "How does FinFlow work ?",
-		answer: "Sign into MetaMask. Borrowers can then request loans by completing the request loan form and locking up collateral. Lenders fund those loans directly on the fund 		loan page, and repayments are automatically handled by smart contracts.",
+		answer: "Sign into MetaMask using Connect Wallet. Once connected, borrowers can then request loans by completing the request loan form and locking up collateral. Lenders fund those loans directly on the fund loan page, and repayments are automatically handled by smart contracts.",
 	},
 	{
 		question: "How does FinFlow differ from traditional finance ?",

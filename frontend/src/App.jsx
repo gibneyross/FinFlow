@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Import route components
 import Home from './pages/Home';
 import RequestLoan from './pages/RequestLoan';
@@ -13,7 +13,6 @@ import Footer from './components/Footer';
 // Import compiled smart contract ABIs
 import loanContractArtifact from './contracts/LoanContract.json';
 import nftContractArtifact from './contracts/ReputationNFT.json';
-// Import Style
 import './App.css';
 
 const LOAN_CONTRACT_ADDRESS = import.meta.env.VITE_LOAN_CONTRACT;
@@ -21,90 +20,123 @@ const NFT_CONTRACT_ADDRESS = import.meta.env.VITE_REPUTATION_CONTRACT;
 
 function App() {
 	// React state hooks to store blockchain connection data
-	const [provider, setProvider]=useState(null);// Ethers provider
+	const [provider, setProvider] = useState(null);// Ethers provider
 	const [signer, setSigner] = useState(null);// User signer
-	const [loanContract, setLoanContract] =useState(null); // Loan smart contract instance
-	const [nftContract, setNftContract]= useState(null);// Reputation NFT contract instance
-	const [account, setAccount] =useState('');// User wallet address
-	const [loading, setLoading]=useState(true);
+	const [loanContract, setLoanContract] = useState(null);// Loan smart contract instance
+	const [nftContract, setNftContract] = useState(null);// Reputation NFT contract instance
+	const [account, setAccount] = useState('');// User wallet address
+	const [loading, setLoading] = useState(true);
 
-	// Auto-connect wallet and contracts
-	useEffect(() => {
-	const init = async () => {
+	// Allow wallet connection via button
+	const connectWallet = async () => {
 		if (!window.ethereum) {
-			console.warn('MetaMask not detected in browser.');
-			setLoading(false); // Continue loading even without wallet
+			alert("Please install MetaMask to connect your wallet.");
 			return;
-   		}
-
+		}
 		try {
-			console.log('Attempting silent wallet detection...');
-			// Attempt to get existing connected accounts
-			const accounts =await window.ethereum.request({ method: 'eth_accounts'});
+			const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
 			const provider = new ethers.BrowserProvider(window.ethereum);
-			const signer= await provider.getSigner();
-			const loan =new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, signer);
+			const signer = await provider.getSigner();
+			const loan = new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, signer);
 			const nft = new ethers.Contract(NFT_CONTRACT_ADDRESS, nftContractArtifact.abi, signer);
+
 			setProvider(provider);
 			setSigner(signer);
 			setLoanContract(loan);
 			setNftContract(nft);
-
-			if (accounts.length > 0) {
-				console.log('Wallet detected:', accounts[0]);
-				setAccount(accounts[0]);
-			} else {
-				console.log('No wallet connected yet');
-			}
+			setAccount(accounts[0]);
 			} catch (err) {
-				console.error('Error during contract or wallet setup:', err);
-			} finally {
-				setLoading(false); // NEW: Always stop loading, even if failure
-
+				console.error("User rejected wallet connection or error occurred:", err);
 			}
 		};
 
-		init();
-	}, []);
+		// Silent wallet detection on page load
+		useEffect(() => {
+			const init = async () => {
+				if (!window.ethereum) {
+					console.warn("MetaMask not detected.");
+					setLoading(false); // Continue loading anyway
+					return;
+				}
 
-	// Show a loading screen whilee initializing
-	if (loading || !loanContract || !nftContract) {
-		return (
-		<div className="loading-screen">
-			<h2>FinFlow loading...</h2>
-		</div>
-		);
-	}
+				try {
+					const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+					if (accounts.length > 0) {
+						const provider = new ethers.BrowserProvider(window.ethereum);
+						const signer = await provider.getSigner();
+						const loan = new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, signer);
+						const nft = new ethers.Contract(NFT_CONTRACT_ADDRESS, nftContractArtifact.abi, signer);
 
-	// Render the app
-	return (
-		<Router>
-		<div className="appcontainer">
-		<Header />
-		<main className="content">
-		<Routes>
-			<Route path="/" element={<Home />} />
-		<Route
-			path="/request-loan"
-			element={<RequestLoan contract={loanContract} account={account} />}
-		/>
-		<Route
-			path="/fund-loan"
-			element={<FundLoan contract={loanContract} account={account} />}
-		/>
-		<Route
-			path="/repay-loan"
-			element={<RepayLoan contract={loanContract} account={account} />}
-		/>
-		<Route
-			path="/reputation"
-			element={<Reputation contract={nftContract} account={account} />}
-		/>
-		</Routes>
-		</main>
-		<Footer />
-		</div>
-	</Router>
+						setProvider(provider);
+						setSigner(signer);
+						setLoanContract(loan);
+						setNftContract(nft);
+						setAccount(accounts[0]);
+    						console.log("Wallet auto-connected:", accounts[0]);
+						} else {
+							console.log("No wallet connected yet.");
+						}
+
+						// Listen for account changes
+						window.ethereum.on("accountsChanged", (newAccounts) => {
+							if (newAccounts.length > 0) {
+								setAccount(newAccounts[0]);
+								console.log("Account switched:", newAccounts[0]);
+							} else {
+								setAccount('');
+								console.log("Wallet disconnected");
+							}
+						});
+						} catch (err) {
+							console.error("Silent wallet detection failed:", err);
+						} finally {
+							setLoading(false); // App should load regardless
+						}
+				};
+
+				init();
+			}, []);
+
+			// Show a loading screen while initializing
+ 			if (loading) {
+				return (
+					<div className="loading-screen">
+						<h2>FinFlow loading...</h2>
+					</div>
+				);
+			}
+
+			// Render the app
+			return (
+				<Router>
+					<div className="appcontainer">
+					{/* Pass connectWallet and account to Header */}
+					<Header account={account} connectWallet={connectWallet} />
+					<main className="content">
+						<Routes>
+						<Route path="/" element={<Home />} />
+						<Route
+							path="/request-loan"
+							element={<RequestLoan contract={loanContract} account={account} />}
+						/>
+						<Route
+							path="/fund-loan"
+							element={<FundLoan contract={loanContract} account={account} />}
+						/>
+						<Route
+							path="/repay-loan"
+							element={<RepayLoan contract={loanContract} account={account} />}
+						/>
+						<Route
+							path="/reputation"
+							element={<Reputation contract={nftContract} account={account} />}
+						/>
+						</Routes>
+					</main>
+					<Footer />
+					</div>
+				</Router>
 	);
 }
+
 export default App;
