@@ -111,7 +111,7 @@ function FundLoan({ contract, account }) {
 				const isFunder = loan.contribution > 0;
 			return (
 				<div key={loan.id} className="loanlist">
-					<p><strong>Loan #{loan.id}</strong></p>
+					<p><strong>Loan {loan.id}</strong></p>
 					<p><strong>Borrower:</strong> {loan.borrower}</p>
 					{/* Show borrower's NFT badge if available */}
 					{borrowerBadges[loan.borrower] && (

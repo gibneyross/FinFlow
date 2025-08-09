@@ -1,25 +1,93 @@
 .header {
-width: 100%;
-box-sizing: border-box;
-	background-color: #add8e6; /*Light blue*/
+	width: 100%;
+	box-sizing: border-box;
+	background-color: #add8e6;/* Light blue */
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 1rem 2rem;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 }
 .logo {
 	font-size: 1.8rem;
 	font-weight: bold;
+	display: flex;
+	align-items: center;
+}
+.nav {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+/* Wallet label + button */
+.wallet-label {
+	font-weight: bold;
+}
+.wallet-btn {
+	padding: 0.4rem 0.8rem;
+}
+/* Hamburger(hidden on desktop)*/
+.hamburger {
+	display: none;
+	background: transparent;
+	border: none;
+	padding: 0.4rem;
+	margin-left: auto;
+	cursor: pointer;
+	border-radius: 8px;
+}
+.hamburger:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(51, 153, 255, 0.35);
+}
+.hamburger-line {
+	display: block;
+	width: 24px;
+	height: 2px;
+	background: black;
+	margin: 5px 0;
+}
+/*Mobile layout*/
+@media (max-width: 800px) {
+	/* Show hamburger */
+		.hamburger {
+		display: inline-block;
+	}
+
+	/* Nav becomes a dropdown panel */
+ 	 .nav {
+		position: absolute;
+		top: 72px;/* below header */
+		right: 16px;
+		left: 16px;
+		display: none;
+		flex-direction: column;
+		gap: 0.5rem;
+		background: #e6f2ff;
+		border: 1px solid black;
+		border-radius: 12px;
+		padding: 0.75rem;
+		box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+		z-index: 1000;
+	}
+
+	.nav a,
+	.nav .wallet-btn,
+	.nav .wallet-label {
+		display: block;
+		width: 100%;
+		text-align: left;
+		padding: 0.6rem 0.8rem;
+		border-radius: 8px;
+ 	 }
+
+	.nav--open {
+		display: flex;
+	}
 }
 .nav a {
-	margin: 0 0.75rem;
 	text-decoration: none;
 	color: black;
 	font-weight: 500;
 }
-.nav {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-}
+
