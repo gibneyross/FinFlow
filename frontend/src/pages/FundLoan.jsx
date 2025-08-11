@@ -21,13 +21,13 @@ function FundLoan({ contract, account }) {
 		setNftContract(nft);
 	};
 	setupNFT();
-	}, []);
+	}, [account]);
 	// Fetch loan data
 	useEffect(() => {
 		if (contract && nftContract) {
 			fetchLoans();
 		}
-	}, [contract, nftContract]);
+	}, [contract, nftContract, account]);
 
 	// Load all loans from the LoanContract and match borrowers to NFTs
 	const fetchLoans = async () => {
@@ -37,7 +37,7 @@ function FundLoan({ contract, account }) {
 			const badges = {};
 		for (let i =0; i < loanCount; i++) {
 			const loan = await contract.getLoan(i);
-			// NEW: Fetch total contributions regardless of connected account
+			//Fetch total contributions regardless of connected account
 			const contribution = await contract.getTotalContributions(i);
 			const [borrower, amount, collateral, dueDate, repaid, active, riskCategory] = loan;
 			// Get the associated NFT for the borrower if available
@@ -49,6 +49,12 @@ function FundLoan({ contract, account }) {
 			// Borrower does not have an NFT
 			badges[borrower] = null;
 		}
+		let myContribution = 0n;
+		if (account) {
+			const contrib = await contract.getLoanContributions(i, account);
+			myContribution = BigInt(contrib);
+		}
+		const isFunder = myContribution > 0n;
         // Store loan details
 		fetchedLoans.push({
 			id: i,
@@ -59,7 +65,9 @@ function FundLoan({ contract, account }) {
 			repaid,
 			active,
 			riskCategory,
-			contribution
+			contribution,
+			myContribution,
+			isFunder
 		});
 	}
 		setLoans(fetchedLoans);
@@ -107,8 +115,8 @@ function FundLoan({ contract, account }) {
 			));
 				// Determine if the loan is overdue
 				const isOverdue = Date.now() > Number(loan.dueDate) * 1000;
-				// NEW: Check if connected account is among lenders for this loan
-				const isFunder = loan.contribution > 0;
+				//Check if connected account is among lenders for this loan
+				const { isFunder } = loan;
 			return (
 				<div key={loan.id} className="loanlist">
 					<p><strong>Loan {loan.id}</strong></p>
@@ -155,15 +163,15 @@ function FundLoan({ contract, account }) {
 						<button type="submit">Fund</button>
 					</form>
 				)}
-				{/* If loan is overdue */}
+				{/* If loan is overdue*/}
 				{loan.active && isOverdue && (
 				<>
-					<p style={{ color: "black" }}>
+					<p style={{ color: "black"}}>
 						This loan is overdue and can no longer be funded.
 					</p>
 					{/* Only show Liquidate button if the current user is a funder */}
 					{isFunder ? (
-					<button onClick={() => liquidateLoan(loan.id)} style={{ marginTop: "0.5rem" }}>
+					<button onClick={() => liquidateLoan(loan.id)} style={{ marginTop:"0.5rem"}}>
 						Liquidate Loan
 					</button>
 					) : (

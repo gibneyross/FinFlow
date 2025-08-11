@@ -27,6 +27,15 @@ function App() {
 	const [account, setAccount] = useState('');// User wallet address
 	const [loading, setLoading] = useState(true);
 
+	const setupBlockchain = async () => {// ensure contracts are always connected with the current signer
+		if (!window.ethereum) return null;
+		const nextProvider = new ethers.BrowserProvider(window.ethereum);
+		const nextSigner = await nextProvider.getSigner();
+		const nextLoan = new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, nextSigner);
+		const nextNft  = new ethers.Contract(NFT_CONTRACT_ADDRESS,  nftContractArtifact.abi,  nextSigner);
+		return { provider: nextProvider, signer: nextSigner, loan: nextLoan, nft: nextNft };
+	};
+
 	// Allow wallet connection via button
 	const connectWallet = async () => {
 		if (!window.ethereum) {
@@ -35,15 +44,13 @@ function App() {
 		}
 		try {
 			const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-			const provider = new ethers.BrowserProvider(window.ethereum);
-			const signer = await provider.getSigner();
-			const loan = new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, signer);
-			const nft = new ethers.Contract(NFT_CONTRACT_ADDRESS, nftContractArtifact.abi, signer);
-
-			setProvider(provider);
-			setSigner(signer);
-			setLoanContract(loan);
-			setNftContract(nft);
+			const result = await setupBlockchain();
+			if (result) {
+				setProvider(result.provider);
+				setSigner(result.signer);
+				setLoanContract(result.loan);
+				setNftContract(result.nft);
+			}
 			setAccount(accounts[0]);
 			} catch (err) {
 				console.error("User rejected wallet connection or error occurred:", err);
@@ -62,15 +69,13 @@ function App() {
 				try {
 					const accounts = await window.ethereum.request({ method: 'eth_accounts' });
 					if (accounts.length > 0) {
-						const provider = new ethers.BrowserProvider(window.ethereum);
-						const signer = await provider.getSigner();
-						const loan = new ethers.Contract(LOAN_CONTRACT_ADDRESS, loanContractArtifact.abi, signer);
-						const nft = new ethers.Contract(NFT_CONTRACT_ADDRESS, nftContractArtifact.abi, signer);
-
-						setProvider(provider);
-						setSigner(signer);
-						setLoanContract(loan);
-						setNftContract(nft);
+						const result = await setupBlockchain();
+						if (result) {
+							setProvider(result.provider);
+							setSigner(result.signer);
+							setLoanContract(result.loan);
+							setNftContract(result.nft);
+						}
 						setAccount(accounts[0]);
     						console.log("Wallet auto-connected:", accounts[0]);
 						} else {
@@ -78,15 +83,38 @@ function App() {
 						}
 
 						// Listen for account changes
-						window.ethereum.on("accountsChanged", (newAccounts) => {
-							if (newAccounts.length > 0) {
-								setAccount(newAccounts[0]);
-								console.log("Account switched:", newAccounts[0]);
-							} else {
-								setAccount('');
-								console.log("Wallet disconnected");
-							}
-						});
+						// are signed by the new account (prevents needing a full page reload)
+				const onAccountsChanged = async (newAccounts) => {
+					if (newAccounts.length > 0) {
+						const result = await setupBlockchain();
+						if (result) {
+							setProvider(result.provider);
+							setSigner(result.signer);
+							setLoanContract(result.loan);
+							setNftContract(result.nft);
+						}
+						setAccount(newAccounts[0]);
+						console.log("Account switched:", newAccounts[0]);
+					} else {
+						setAccount('');
+						setSigner(null);
+						setLoanContract(null);
+						setNftContract(null);
+						console.log("Wallet disconnected");
+					}
+				};
+				window.ethereum.on("accountsChanged", onAccountsChanged);
+				const onChainChanged = () => {
+					// A full reload is recommended by MetaMask (ensures providers/signers reset cleanly)
+					window.location.reload();
+				};
+				window.ethereum.on("chainChanged", onChainChanged);
+				return () => {
+					if (window.ethereum?.removeListener) {
+						window.ethereum.removeListener("accountsChanged", onAccountsChanged);
+						window.ethereum.removeListener("chainChanged", onChainChanged);
+					}
+				};
 						} catch (err) {
 							console.error("Silent wallet detection failed:", err);
 						} finally {
@@ -138,5 +166,4 @@ function App() {
 				</Router>
 	);
 }
-
 export default App;
